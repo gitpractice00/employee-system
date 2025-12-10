@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.delete {
+            background-color: #f44336;
+        }
+        button.delete:hover {
+            background-color: #da190b;
+        }
+        button.update {
+            background-color: #2196F3;
+        }
+        button.update:hover {
+            background-color: #0b7dda;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .result {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            border-left-color: #f44336;
+            background-color: #ffebee;
+        }
+        label {
+            display: inline-block;
+            width: 100px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Employee Management API Tester</h1>
+    <p>Test your API without Postman!</p>
+
+    <!-- GET ALL EMPLOYEES -->
+    <div class="section">
+        <h2>📋 1. Get All Employees</h2>
+        <button onclick="getAllEmployees()">Get All Employees</button>
+        <div id="result-all" class="result"></div>
+    </div>
+
+    <!-- GET ONE EMPLOYEE -->
+    <div class="section">
+        <h2>🔍 2. Get One Employee</h2>
+        <label>Employee ID:</label>
+        <input type="number" id="get-id" value="1">
+        <button onclick="getOneEmployee()">Get Employee</button>
+        <div id="result-one" class="result"></div>
+    </div>
+
+    <!-- ADD NEW EMPLOYEE -->
+    <div class="section">
+        <h2>➕ 3. Add New Employee</h2>
+        <div>
+            <label>Name:</label>
+            <input type="text" id="add-name" placeholder="Jane Smith"><br>
+            <label>Email:</label>
+            <input type="email" id="add-email" placeholder="jane@test.com"><br>
+            <label>Phone:</label>
+            <input type="text" id="add-phone" placeholder="9876543210"><br>
+            <label>Position:</label>
+            <input type="text" id="add-position" placeholder="Manager"><br>
+            <label>Salary:</label>
+            <input type="number" id="add-salary" placeholder="60000"><br>
+            <label>Hire Date:</label>
+            <input type="date" id="add-date" value="2024-01-20"><br>
+        </div>
+        <button onclick="addEmployee()">Add Employee</button>
+        <div id="result-add" class="result"></div>
+    </div>
+
+    <!-- UPDATE EMPLOYEE -->
+    <div class="section">
+        <h2>🔄 4. Update Employee</h2>
+        <div>
+            <label>Employee ID:</label>
+            <input type="number" id="update-id" value="2"><br>
+            <label>Name:</label>
+            <input type="text" id="update-name" placeholder="Jane Smith"><br>
+            <label>Email:</label>
+            <input type="email" id="update-email" placeholder="jane@test.com"><br>
+            <label>Phone:</label>
+            <input type="text" id="update-phone" placeholder="9876543210"><br>
+            <label>Position:</label>
+            <input type="text" id="update-position" placeholder="Senior Manager"><br>
+            <label>Salary:</label>
+            <input type="number" id="update-salary" placeholder="65000"><br>
+            <label>Hire Date:</label>
+            <input type="date" id="update-date" value="2024-01-20"><br>
+        </div>
+        <button class="update" onclick="updateEmployee()">Update Employee</button>
+        <div id="result-update" class="result"></div>
+    </div>
+
+    <!-- DELETE EMPLOYEE -->
+    <div class="section">
+        <h2>❌ 5. Delete Employee</h2>
+        <label>Employee ID:</label>
+        <input type="number" id="delete-id" value="2">
+        <button class="delete" onclick="deleteEmployee()">Delete Employee</button>
+        <div id="result-delete" class="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        // Helper function to display results
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = JSON.stringify(data, null, 2);
+            element.className = isError ? 'result error' : 'result';
+        }
+
+        // 1. Get all employees
+        async function getAllEmployees() {
+            try {
+                const response = await fetch(`${API_URL}/employees`);
+                const data = await response.json();
+                showResult('result-all', data);
+            } catch (error) {
+                showResult('result-all', { error: error.message }, true);
+            }
+        }
+
+        // 2. Get one employee
+        async function getOneEmployee() {
+            const id = document.getElementById('get-id').value;
+            try {
+                const response = await fetch(`${API_URL}/employees/${id}`);
+                const data = await response.json();
+                showResult('result-one', data, !response.ok);
+            } catch (error) {
+                showResult('result-one', { error: error.message }, true);
+            }
+        }
+
+        // 3. Add new employee
+        async function addEmployee() {
+            const employeeData = {
+                name: document.getElementById('add-name').value,
+                email: document.getElementById('add-email').value,
+                phone: document.getElementById('add-phone').value,
+                position: document.getElementById('add-position').value,
+                salary: parseFloat(document.getElementById('add-salary').value),
+                hire_date: document.getElementById('add-date').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/employees`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(employeeData)
+                });
+                const data = await response.json();
+                showResult('result-add', data, !response.ok);
+            } catch (error) {
+                showResult('result-add', { error: error.message }, true);
+            }
+        }
+
+        // 4. Update employee
+        async function updateEmployee() {
+            const id = document.getElementById('update-id').value;
+            const employeeData = {
+                name: document.getElementById('update-name').value,
+                email: document.getElementById('update-email').value,
+                phone: document.getElementById('update-phone').value,
+                position: document.getElementById('update-position').value,
+                salary: parseFloat(document.getElementById('update-salary').value),
+                hire_date: document.getElementById('update-date').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/employees/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(employeeData)
+                });
+                const data = await response.json();
+                showResult('result-update', data, !response.ok);
+            } catch (error) {
+                showResult('result-update', { error: error.message }, true);
+            }
+        }
+
+        // 5. Delete employee
+        async function deleteEmployee() {
+            const id = document.getElementById('delete-id').value;
+            
+            if (!confirm(`Are you sure you want to delete employee ${id}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/employees/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                showResult('result-delete', data, !response.ok);
+            } catch (error) {
+                showResult('result-delete', { error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>
