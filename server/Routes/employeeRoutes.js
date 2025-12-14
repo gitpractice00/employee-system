@@ -1,24 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
-const { verifyToken } = require('../authMiddleware');
+const verifyToken = require('../authMiddleware');
 
 // Get all employees (PROTECTED)
 router.get('/', verifyToken, function(req, res) {
-  console.log('📋 Get all employees');
+  console.log('[GET] Fetching all employees');
   
   const sql = 'SELECT * FROM employees';
   
   db.query(sql, function(err, results) {
     if (err) {
-      console.error('❌ Database error:', err);
+      console.error('[ERROR] Database error:', err);
       return res.status(500).json({ 
         error: 'Failed to get employees',
         details: err.message 
       });
     }
     
-    console.log('✅ Found', results.length, 'employees');
+    console.log('[SUCCESS] Found', results.length, 'employees');
     res.json({
       success: true,
       count: results.length,
@@ -31,13 +31,13 @@ router.get('/', verifyToken, function(req, res) {
 // Get one employee by ID (PROTECTED)
 router.get('/:id', verifyToken, function(req, res) {
   const id = req.params.id;
-  console.log('🔍 Get employee:', id);
+  console.log('[GET] Fetching employee ID:', id);
   
   const sql = 'SELECT * FROM employees WHERE id = ?';
   
   db.query(sql, [id], function(err, results) {
     if (err) {
-      console.error('❌ Database error:', err);
+      console.error('[ERROR] Database error:', err);
       return res.status(500).json({ 
         error: 'Database error',
         details: err.message 
@@ -45,13 +45,13 @@ router.get('/:id', verifyToken, function(req, res) {
     }
     
     if (results.length === 0) {
-      console.log('❌ Employee not found');
+      console.log('[ERROR] Employee not found');
       return res.status(404).json({ 
         error: 'Employee not found' 
       });
     }
     
-    console.log('✅ Employee found');
+    console.log('[SUCCESS] Employee found');
     res.json({
       success: true,
       data: results[0]
@@ -61,12 +61,12 @@ router.get('/:id', verifyToken, function(req, res) {
 
 // CREATE - Add new employee (PROTECTED)
 router.post('/', verifyToken, function(req, res) {
-  console.log('➕ Add employee:', req.body);
+  console.log('[POST] Adding new employee:', req.body);
   
   const { name, email, phone, position, salary, hire_date } = req.body;
   
   if (!name || !email) {
-    console.log('❌ Missing required fields');
+    console.log('[ERROR] Missing required fields');
     return res.status(400).json({ 
       error: 'Name and email are required' 
     });
@@ -77,14 +77,14 @@ router.post('/', verifyToken, function(req, res) {
   
   db.query(sql, values, function(err, result) {
     if (err) {
-      console.error('❌ Insert error:', err);
+      console.error('[ERROR] Insert error:', err);
       return res.status(500).json({ 
         error: 'Failed to add employee',
         details: err.message 
       });
     }
     
-    console.log('✅ Employee added, ID:', result.insertId);
+    console.log('[SUCCESS] Employee added, ID:', result.insertId);
     res.status(201).json({
       success: true,
       message: 'Employee added successfully!',
@@ -96,7 +96,7 @@ router.post('/', verifyToken, function(req, res) {
 // UPDATE - Edit existing employee (PROTECTED)
 router.put('/:id', verifyToken, function(req, res) {
   const id = req.params.id;
-  console.log('✏️ Update employee:', id, req.body);
+  console.log('[PUT] Updating employee ID:', id);
   
   const { name, email, phone, position, salary, hire_date } = req.body;
   
@@ -105,7 +105,7 @@ router.put('/:id', verifyToken, function(req, res) {
   
   db.query(sql, values, function(err, result) {
     if (err) {
-      console.error('❌ Update error:', err);
+      console.error('[ERROR] Update error:', err);
       return res.status(500).json({ 
         error: 'Failed to update employee',
         details: err.message 
@@ -113,13 +113,13 @@ router.put('/:id', verifyToken, function(req, res) {
     }
     
     if (result.affectedRows === 0) {
-      console.log('❌ Employee not found');
+      console.log('[ERROR] Employee not found');
       return res.status(404).json({ 
         error: 'Employee not found' 
       });
     }
     
-    console.log('✅ Employee updated');
+    console.log('[SUCCESS] Employee updated');
     res.json({
       success: true,
       message: 'Employee updated successfully!'
@@ -130,13 +130,13 @@ router.put('/:id', verifyToken, function(req, res) {
 // DELETE - Remove employee (PROTECTED)
 router.delete('/:id', verifyToken, function(req, res) {
   const id = req.params.id;
-  console.log('🗑️ Delete employee:', id);
+  console.log('[DELETE] Removing employee ID:', id);
   
   const sql = 'DELETE FROM employees WHERE id = ?';
   
   db.query(sql, [id], function(err, result) {
     if (err) {
-      console.error('❌ Delete error:', err);
+      console.error('[ERROR] Delete error:', err);
       return res.status(500).json({ 
         error: 'Failed to delete employee',
         details: err.message 
@@ -144,13 +144,13 @@ router.delete('/:id', verifyToken, function(req, res) {
     }
     
     if (result.affectedRows === 0) {
-      console.log('❌ Employee not found');
+      console.log('[ERROR] Employee not found');
       return res.status(404).json({ 
         error: 'Employee not found' 
       });
     }
     
-    console.log('✅ Employee deleted');
+    console.log('[SUCCESS] Employee deleted');
     res.json({
       success: true,
       message: 'Employee deleted successfully!'

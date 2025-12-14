@@ -262,170 +262,252 @@ app.listen(PORT, function() {
 // const express = require('express');
 // const db = require('./database.js');
 
+// require('dotenv').config();
+// const express = require('express');
+// const db = require('./database');
+// const cors = require('cors');
+// const verifyToken = require('./authMiddleware.js'); //importing from the module.export from the authMiddleware.js file
+// const authRoutes = require('./auth');
+
+// const app = express();
+// app.use(cors({
+//   origin: "http://localhost:3000",
+//   methods: "GET,POST,PUT,DELETE",
+//   credentials: true
+// }));
+// app.use(express.json());
+// app.use('/auth', authRoutes);
+
+// // Homepage
+// app.get('/', function(req, res) {
+//   res.send('Employee System is Running! 🎉');
+// });
+
+// // Get all employees (PROTECTED)
+// app.get('/employees', verifyToken, function(req, res) {
+//   // Only logged-in users can reach here!
+//   const sql = 'SELECT * FROM employees';
+  
+//   db.query(sql, function(err, results) {
+//     if (err) {
+//       console.error('Database error:', err);
+//       return res.status(500).json({ 
+//         error: 'Failed to get employees',
+//         details: err.message 
+//       });
+//     }
+    
+//     res.json({
+//       success: true,
+//       count: results.length,
+//       data: results,
+//       requestedBy: req.user.email  // We can access user info!
+//     });
+//   });
+// });
+
+// // Get one employee by ID (PROTECTED)
+// app.get('/employees/:id', verifyToken, function(req, res) {
+//   const id = req.params.id;
+//   const sql = 'SELECT * FROM employees WHERE id = ?';
+  
+//   db.query(sql, [id], function(err, results) {
+//     if (err) {
+//       return res.status(500).json({ 
+//         error: 'Database error',
+//         details: err.message 
+//       });
+//     }
+    
+//     if (results.length === 0) {
+//       return res.status(404).json({ 
+//         error: 'Employee not found' 
+//       });
+//     }
+    
+//     res.json({
+//       success: true,
+//       data: results[0]
+//     });
+//   });
+// });
+
+// // CREATE - Add new employee (PROTECTED)
+// app.post('/employees', verifyToken, function(req, res) {
+//   // Get data from request body
+//   const { name, email, phone, position, salary, hire_date } = req.body;
+  
+//   // Check if required fields are provided
+//   if (!name || !email) {
+//     return res.status(400).json({ 
+//       error: 'Name and email are required' 
+//     });
+//   }
+  
+//   // SQL query to insert new employee
+//   const sql = 'INSERT INTO employees (name, email, phone, position, salary, hire_date) VALUES (?, ?, ?, ?, ?, ?)';
+//   const values = [name, email, phone, position, salary, hire_date];
+  
+//   db.query(sql, values, function(err, result) {
+//     if (err) {
+//       console.error('Insert error:', err);
+//       return res.status(500).json({ 
+//         error: 'Failed to add employee',
+//         details: err.message 
+//       });
+//     }
+    
+//     res.status(201).json({
+//       success: true,
+//       message: 'Employee added successfully!',
+//       employeeId: result.insertId
+//     });
+//   });
+// });
+
+// // UPDATE - Edit existing employee (PROTECTED)
+// app.put('/employees/:id', verifyToken, function(req, res) {
+//   const id = req.params.id;
+//   const { name, email, phone, position, salary, hire_date } = req.body;
+  
+//   // SQL query to update employee
+//   const sql = 'UPDATE employees SET name = ?, email = ?, phone = ?, position = ?, salary = ?, hire_date = ? WHERE id = ?';
+//   const values = [name, email, phone, position, salary, hire_date, id];
+  
+//   db.query(sql, values, function(err, result) {
+//     if (err) {
+//       console.error('Update error:', err);
+//       return res.status(500).json({ 
+//         error: 'Failed to update employee',
+//         details: err.message 
+//       });
+//     }
+    
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ 
+//         error: 'Employee not found' 
+//       });
+//     }
+    
+//     res.json({
+//       success: true,
+//       message: 'Employee updated successfully!'
+//     });
+//   });
+// });
+
+// // DELETE - Remove employee (PROTECTED)
+// app.delete('/employees/:id', verifyToken, function(req, res) {
+//   const id = req.params.id;
+  
+//   // SQL query to delete employee
+//   const sql = 'DELETE FROM employees WHERE id = ?';
+  
+//   db.query(sql, [id], function(err, result) {
+//     if (err) {
+//       console.error('Delete error:', err);
+//       return res.status(500).json({ 
+//         error: 'Failed to delete employee',
+//         details: err.message 
+//       });
+//     }
+    
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ 
+//         error: 'Employee not found' 
+//       });
+//     }
+    
+//     res.json({
+//       success: true,
+//       message: 'Employee deleted successfully!'
+//     });
+//   });
+// });
+
+// const PORT = 5000;
+// app.listen(PORT, function() {
+//   console.log(`✅ Server running on http://localhost:${PORT}`);
+// });
+
+// After the seprate rout file for the employee, attendance , payroll
+
 require('dotenv').config();
 const express = require('express');
-const db = require('./database');
 const cors = require('cors');
-const verifyToken = require('./authMiddleware.js'); //importing from the module.export from the authMiddleware.js file
+const db = require('./database');
+const { testConnection } = require('./database');
+
+// Import routes
 const authRoutes = require('./auth');
+const employeeRoutes = require('./routes/EmployeeRoutes');
+const attendanceRoutes = require('./routes/Attendance_Routes');
+const payrollRoutes = require('./routes/payrollRoutes');
 
 const app = express();
+
+// Middleware
 app.use(cors({
-  origin: "http://localhost:3000",
-  methods: "GET,POST,PUT,DELETE",
+  origin: 'http://localhost:3000',
   credentials: true
 }));
 app.use(express.json());
-app.use('/auth', authRoutes);
+
+// Routes
+app.use('/auth', authRoutes);              // Authentication routes
+app.use('/employees', employeeRoutes);     // Employee CRUD routes
+app.use('/api/attendance', attendanceRoutes);  // Attendance routes
+app.use('/api/payroll', payrollRoutes);        // Payroll routes
 
 // Homepage
 app.get('/', function(req, res) {
-  res.send('Employee System is Running! 🎉');
-});
-
-// Get all employees (PROTECTED)
-app.get('/employees', verifyToken, function(req, res) {
-  // Only logged-in users can reach here!
-  const sql = 'SELECT * FROM employees';
-  
-  db.query(sql, function(err, results) {
-    if (err) {
-      console.error('Database error:', err);
-      return res.status(500).json({ 
-        error: 'Failed to get employees',
-        details: err.message 
-      });
+  res.json({ 
+    message: 'Employee Management System API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/auth (login, signup)',
+      employees: '/employees (CRUD)',
+      attendance: '/api/attendance',
+      payroll: '/api/payroll'
     }
-    
-    res.json({
-      success: true,
-      count: results.length,
-      data: results,
-      requestedBy: req.user.email  // We can access user info!
-    });
   });
 });
 
-// Get one employee by ID (PROTECTED)
-app.get('/employees/:id', verifyToken, function(req, res) {
-  const id = req.params.id;
-  const sql = 'SELECT * FROM employees WHERE id = ?';
-  
-  db.query(sql, [id], function(err, results) {
-    if (err) {
-      return res.status(500).json({ 
-        error: 'Database error',
-        details: err.message 
-      });
-    }
-    
-    if (results.length === 0) {
-      return res.status(404).json({ 
-        error: 'Employee not found' 
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: results[0]
-    });
+// 404 handler
+app.use(function(req, res) {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
   });
 });
 
-// CREATE - Add new employee (PROTECTED)
-app.post('/employees', verifyToken, function(req, res) {
-  // Get data from request body
-  const { name, email, phone, position, salary, hire_date } = req.body;
-  
-  // Check if required fields are provided
-  if (!name || !email) {
-    return res.status(400).json({ 
-      error: 'Name and email are required' 
+// Error handler
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error'
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    // Test database connection
+    await testConnection();
+    
+    // Start listening
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`📚 API Docs: http://localhost:${PORT}/`);
     });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
   }
-  
-  // SQL query to insert new employee
-  const sql = 'INSERT INTO employees (name, email, phone, position, salary, hire_date) VALUES (?, ?, ?, ?, ?, ?)';
-  const values = [name, email, phone, position, salary, hire_date];
-  
-  db.query(sql, values, function(err, result) {
-    if (err) {
-      console.error('Insert error:', err);
-      return res.status(500).json({ 
-        error: 'Failed to add employee',
-        details: err.message 
-      });
-    }
-    
-    res.status(201).json({
-      success: true,
-      message: 'Employee added successfully!',
-      employeeId: result.insertId
-    });
-  });
-});
+};
 
-// UPDATE - Edit existing employee (PROTECTED)
-app.put('/employees/:id', verifyToken, function(req, res) {
-  const id = req.params.id;
-  const { name, email, phone, position, salary, hire_date } = req.body;
-  
-  // SQL query to update employee
-  const sql = 'UPDATE employees SET name = ?, email = ?, phone = ?, position = ?, salary = ?, hire_date = ? WHERE id = ?';
-  const values = [name, email, phone, position, salary, hire_date, id];
-  
-  db.query(sql, values, function(err, result) {
-    if (err) {
-      console.error('Update error:', err);
-      return res.status(500).json({ 
-        error: 'Failed to update employee',
-        details: err.message 
-      });
-    }
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        error: 'Employee not found' 
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Employee updated successfully!'
-    });
-  });
-});
-
-// DELETE - Remove employee (PROTECTED)
-app.delete('/employees/:id', verifyToken, function(req, res) {
-  const id = req.params.id;
-  
-  // SQL query to delete employee
-  const sql = 'DELETE FROM employees WHERE id = ?';
-  
-  db.query(sql, [id], function(err, result) {
-    if (err) {
-      console.error('Delete error:', err);
-      return res.status(500).json({ 
-        error: 'Failed to delete employee',
-        details: err.message 
-      });
-    }
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        error: 'Employee not found' 
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Employee deleted successfully!'
-    });
-  });
-});
-
-const PORT = 5000;
-app.listen(PORT, function() {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-});
+startServer();
